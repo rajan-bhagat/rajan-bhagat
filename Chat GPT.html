@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Digital OMR Sheet</title>
+  <style>
+    body{margin:0;font-family:'Segoe UI',sans-serif;background:#1c2a39;color:#e0e0e0;transition:background .3s,color .3s;overflow-y:scroll;min-height:100vh}
+    .dark-mode{background:#f0f2f5;color:#333}
+    .main-wrapper{display:flex;flex-direction:column;min-height:100vh}
+    .btn-base{border:none;border-radius:5px;cursor:pointer;color:white;transition:background .2s ease-in-out,color .2s ease-in-out;padding:8px 15px;font-size:14px}
+    .btn-primary{background:#4A90E2}.btn-primary:hover{background:#3C7DC2}
+    .btn-danger{background:#D65A5A}.btn-danger:hover{background:#BC4B4B}
+    .btn-secondary{background:#8F9BA8}.btn-secondary:hover{background:#7A8693}
+    .btn-warning{background:#DAA520}.btn-warning:hover{background:#BF8C1A}
+    .dark-mode .btn-warning{color:#333}.dark-mode .btn-warning:hover{color:#333}
+    .btn-purple{background:#8E44AD}.btn-purple:hover{background:#7D3C9D}
+    .btn-success{background:#2E8B57}.btn-success:hover{background:#26724A}
+    .btn-warning.marked-for-review{border:3px solid black}
+    .dark-mode .btn-warning.marked-for-review{border:3px solid #555}
+    .top-header{display:flex;justify-content:space-between;align-items:center;padding:10px 25px;background:#15202B;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+    .top-header .logo-section{display:flex;align-items:center;gap:15px}
+    .top-header .hamburger{font-size:24px;cursor:pointer;color:white}
+    .top-header h1{font-size:20px;color:white;margin:0}
+    .top-header .header-controls{display:flex;align-items:center;gap:15px}
+    .top-header .header-controls button{padding:8px 15px;font-size:14px}
+    .theme-toggle-buttons{display:flex;gap:8px}
+    .theme-toggle-buttons button{padding:6px 12px;font-size:12px;border-radius:4px;background-color:#3a5068;color:#bbb}
+    .theme-toggle-buttons button.active{background-color:#4A90E2;color:white}
+    .dark-mode .theme-toggle-buttons button{background-color:#ccc;color:#333}
+    .dark-mode .theme-toggle-buttons button.active{background-color:#4A90E2;color:white}
+    .content-area{flex-grow:1;display:flex;justify-content:center;align-items:flex-start;padding:20px;position:relative}
+    .quiz-panel,.review-panel,#analysisPage,.modal-content,#setupPage{background:#2b3e50;border-radius:8px;box-shadow:0 4px 15px rgba(0,0,0,.3);padding:25px 35px;width:100%;max-width:1200px;transition:background .3s,color .3s}
+    .dark-mode .quiz-panel,.dark-mode .review-panel,.dark-mode #analysisPage,.dark-mode .modal-content,.dark-mode #setupPage{background:white;color:#333}
+    .review-panel,#analysisPage,.quiz-panel{display:none}
+    .quiz-controls-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:15px}
+    .dark-mode .quiz-controls-bar{border-bottom:1px solid rgba(0,0,0,.1)}
+    .timers{display:flex;align-items:center;gap:20px;font-size:16px;color:#e0e0e0;background-color:#3a5068;padding:8px 15px;border-radius:6px;box-shadow:inset 0 1px 3px rgba(0,0,0,.2)}
+    .dark-mode .timers{color:#333;background-color:#f8f9fa;box-shadow:inset 0 1px 3px rgba(0,0,0,.1)}
+    .timers span:first-child{border-right:1px solid rgba(255,255,255,.2);padding-right:20px}
+    .dark-mode .timers span:first-child{border-right:1px solid rgba(0,0,0,.2)}
+    .question{display:none;transition:opacity .3s ease-in-out}.question.active{display:block}
+    .question h3{font-size:18px;margin:10px 0 20px;color:#e0e0e0}
+    .dark-mode .question h3{color:#333}
+    label{display:flex;align-items:center;margin:12px 0;padding:12px 15px;background:#3a5068;border:1px solid #4a627d;border-radius:6px;cursor:pointer;font-size:16px;color:#e0e0e0;transition:background .2s,border-color .2s}
+    .dark-mode label{background:#f8f9fa;border-color:#ccc;color:#333}
+    label:hover{background:#4a627d;border-color:#5b7490}
+    .dark-mode label:hover{background:#e9ecef}
+    input[type="radio"]{margin-right:12px;transform:scale(1.2);accent-color:#4A90E2}
+    .nav-buttons{margin-top:30px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    .nav-buttons button{padding:12px 15px;font-size:15px;flex:1;min-width:120px;border-radius:6px}
+    .review-panel h3{font-size:20px;color:#e0e0e0;margin-bottom:15px}
+    .dark-mode .review-panel h3{color:#333}
+    .review-summary-info{display:flex;justify-content:space-around;padding:10px 0;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,.1);color:#bbb}
+    .dark-mode .review-summary-info{border-bottom:1px solid rgba(0,0,0,.1);color:#555}
+    .review-summary-info span{font-weight:bold;margin-left:5px;color:#e0e0e0}
+    .dark-mode .review-summary-info span{color:#333}
+    .legend{display:flex;flex-wrap:wrap;gap:15px;margin-bottom:25px;padding-bottom:15px;border-bottom:1px solid rgba(255,255,255,.1)}
+    .dark-mode .legend{border-bottom:1px solid rgba(0,0,0,.1)}
+    .legend-item{display:flex;align-items:center;font-size:14px;color:#bbb}
+    .dark-mode .legend-item{color:#555}
+    .legend-color-box{width:18px;height:18px;border-radius:4px;margin-right:8px;border:1px solid rgba(0,0,0,.1)}
+    .question-nav-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:12px}
+    .question-nav-grid button{width:100%;aspect-ratio:1 / 1;padding:0;font-size:16px;border:none;border-radius:6px;cursor:pointer;color:white;background-color:#4a627d;display:flex;justify-content:center;align-items:center;transition:background .2s ease-in-out}
+    .question-nav-grid button:hover{filter:brightness(1.2)}
+    .question-nav-grid button.answered{background-color:#2E8B57}
+    .question-nav-grid button.unanswered{background-color:#D65A5A}
+    .question-nav-grid button.reviewed{background-color:#DAA520}
+    .question-nav-grid button.current-q{background-color:#8E44AD}
+    .review-panel-actions{display:flex;justify-content:flex-end;margin-top:30px;border-top:1px solid rgba(255,255,255,.1);padding-top:20px;gap:15px}
+    .dark-mode .review-panel-actions{border-top:1px solid rgba(0,0,0,.1)}
+    .review-panel-actions button{padding:12px 25px;font-size:16px;border-radius:6px}
+    #analysisPage h2{text-align:center;color:#e0e0e0;margin-bottom:25px;font-size:24px}
+    .dark-mode #analysisPage h2{color:#333}
+    #analysisSummary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-bottom:30px;padding:15px;background-color:#33475d;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+    .dark-mode #analysisSummary{background-color:#f8f9fa}
+    #analysisSummary div{background-color:#3a5068;padding:15px;border-radius:5px;text-align:center;box-shadow:inset 0 1px 3px rgba(0,0,0,.2)}
+    .dark-mode #analysisSummary div{background-color:#e9ecef}
+    #analysisSummary p{font-size:15px;margin:0;color:#bbb}
+    .dark-mode #analysisSummary p{color:#555}
+    #analysisSummary span{display:block;font-size:28px;font-weight:bold;color:#e0e0e0;margin-top:8px}
+    .dark-mode #analysisSummary span{color:#333}
+    #analysisSummary .score-display{grid-column:1 / -1;background-color:#4A90E2;color:white;padding:20px;font-size:32px;font-weight:bold;border-radius:8px;margin-top:10px}
+    .dark-mode #analysisSummary .score-display{background-color:#3C7DC2}
+    #analysisTable{width:100%;border-collapse:collapse;margin-top:25px}
+    #analysisTable th,#analysisTable td{border:1px solid rgba(255,255,255,.2);padding:12px;text-align:left;font-size:14px}
+    .dark-mode #analysisTable th,.dark-mode #analysisTable td{border:1px solid #ddd}
+    #analysisTable th{background-color:#3a5068;color:#e0e0e0}
+    .dark-mode #analysisTable th{background-color:#f2f2f2;color:#555}
+    #analysisTable tr:nth-child(even){background-color:#33475d}
+    .dark-mode #analysisTable tr:nth-child(even){background-color:#f9f9f9}
+    .correct-answer{color:#2E8B57;font-weight:bold}
+    .user-answer{color:#4A90E2}
+    .wrong-answer{color:#D65A5A;font-weight:bold}
+    .not-attempted{color:#888;font-style:italic}
+    .modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);justify-content:center;align-items:center;z-index:1000}
+    .modal-content h3{font-size:22px;margin:0 0 15px;color:#D65A5A}
+    .modal-content p{font-size:16px;line-height:1.5;margin-bottom:25px}
+    .modal-summary{text-align:left;margin-bottom:25px;background:#3a5068;padding:15px;border-radius:5px;border-left:5px solid #4A90E2;font-size:15px;color:#e0e0e0}
+    .dark-mode .modal-summary{background:#f0f2f5;border-left-color:#4A90E2;color:#333}
+    .modal-summary p{margin:5px 0}
+    .modal-actions button{padding:12px 25px;font-size:16px;margin:0 10px;border-radius:5px}
+    #setupPage{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:400px}
+    #setupPage h2{font-size:28px;color:#e0e0e0;margin-bottom:30px}
+    .dark-mode #setupPage h2{color:#333}
+    .setup-input-group{margin-bottom:25px;width:100%;max-width:300px}
+    .setup-input-group label{display:block;font-size:18px;margin-bottom:10px;color:#e0e0e0;background:none;padding:0;border:none;cursor:default}
+    .dark-mode .setup-input-group label{color:#333}
+    .setup-input-group input[type="number"]{width:calc(100% - 20px);padding:12px 10px;font-size:16px;border:1px solid #4a627d;border-radius:5px;background-color:#3a5068;color:#e0e0e0;box-shadow:inset 0 1px 3px rgba(0,0,0,.2)}
+    .dark-mode .setup-input-group input[type="number"]{background-color:#f8f9fa;border-color:#ccc;color:#333}
+    .setup-input-group input[type="number"]:focus{outline:none;border-color:#4A90E2;box-shadow:0 0 0 2px rgba(74,144,226,.5)}
+    .omr-options{display:flex;flex-direction:column;gap:8px;margin-top:15px}
+    .omr-options label{flex:unset;min-width:unset;justify-content:flex-start;padding:8px 15px}
+    #startTestBtn{padding:15px 30px;font-size:20px;margin-top:20px}
+  </style>
+</head>
+<body>
+  <div class="main-wrapper">
+    <div class="top-header">
+      <div class="logo-section">
+        <span class="hamburger">☰</span>
+        <h1>Digital OMR Sheet</h1>
+      </div>
+      <div class="header-controls">
+        <button class="btn-base btn-primary" onclick="toggleFullScreen()">Go Fullscreen</button>
+        <button class="btn-base btn-danger" id="submitBtn" onclick="showSubmissionWarning()" style="display: none;">Submit</button>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <div id="setupPage">
+        <h2>OMR Sheet Configuration</h2>
+        <div class="setup-input-group">
+          <label for="testDuration">Test Duration (minutes):</label>
+          <input type="number" id="testDuration" value="5" min="1" max="180">
+        </div>
+        <div class="setup-input-group">
+          <label for="numQuestions">Number of Questions:</label>
+          <input type="number" id="numQuestions" value="5" min="1" max="100">
+        </div>
+        <button class="btn-base btn-success" id="startTestBtn" onclick="startTest()">Start OMR Sheet</button>
+      </div>
+
+      <div class="quiz-panel" id="quizContainer">
+        <div class="quiz-controls-bar">
+          <div class="theme-toggle-buttons">
+            <button id="darkThemeBtn" onclick="setTheme('dark')">Dark</button>
+            <button id="lightThemeBtn" onclick="setTheme('light')">Light</button>
+          </div>
+          <div class="timers">
+            <span>Total Time: <span id="totalTime">00:00</span></span>
+            <span>This Question: <span id="questionTime">00:00</span></span>
+          </div>
+        </div>
+
+        <form id="cbtForm"></form>
+
+        <div class="nav-buttons">
+          <button class="btn-base btn-secondary" onclick="prevQuestion()">Back</button>
+          <button class="btn-base btn-danger" id="eraseBtn" onclick="eraseAnswer()">Erase</button>
+          <button class="btn-base btn-warning" id="markReviewBtn" onclick="markReview()">Mark for Review</button>
+          <button class="btn-base btn-purple" onclick="toggleReviewPanel()">Review Progress</button>
+          <button class="btn-base btn-success" onclick="nextQuestion()">Next</button>
+        </div>
+      </div>
+
+      <div class="review-panel" id="reviewPanel">
+        <h3>Review Your Progress:</h3>
+        <div class="review-summary-info">
+            <p>Answered: <span id="reviewAnsweredCount">0</span></p>
+            <p>Unanswered: <span id="reviewUnansweredCount">0</span></p>
+        </div>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-color-box" style="background-color: #2E8B57;"></span> Answered</div>
+          <div class="legend-item"><span class="legend-color-box" style="background-color: #D65A5A;"></span> Unanswered</div>
+          <div class="legend-item"><span class="legend-color-box" style="background-color: #DAA520;"></span> Marked for Review</div>
+          <div class="legend-item"><span class="legend-color-box" style="background-color: #8E44AD;"></span> Current Question</div>
+        </div>
+
+        <div class="question-nav-grid" id="questionNavGrid"></div>
+
+        <div class="review-panel-actions">
+          <button class="btn-base btn-primary" onclick="toggleReviewPanel()">Back to OMR Sheet</button>
+        </div>
+      </div>
+
+      <div id="analysisPage">
+        <h2>OMR Sheet Analysis</h2>
+        <div id="analysisSummary">
+          <div><p>Total Questions</p><span id="summaryTotal"></span></div>
+          <div><p>Attempted</p><span id="summaryAttempted"></span></div>
+          <div><p>Unattempted</p><span id="summaryUnattempted"></span></div>
+        </div>
+        <table id="analysisTable">
+          <thead>
+            <tr>
+              <th>Q. No</th>
+              <th>Your Recorded Answer</th>
+              <th>Time Taken</th>
+            </tr>
+          </thead>
+          <tbody id="analysisTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="submissionWarningModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3>Confirm Submission?</h3>
+      <p>You are about to submit the OMR sheet. Please review the summary below before proceeding.</p>
+      <div class="modal-summary">
+        <p>Questions Answered: <span id="modalAnsweredCount"></span></p>
+        <p>Questions Unanswered: <span id="modalUnansweredCount"></span></p>
+        <p>Questions Marked for Review: <span id="modalReviewedCount"></span></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-base btn-danger" onclick="finalSubmitTest()">Yes, Submit</button>
+        <button class="btn-base btn-primary" onclick="hideSubmissionWarning()">No, Go Back</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let current = 0, totalQuestions = 0, questionSeconds = 0, totalSeconds = 0, totalTimeInterval;
+    let reviewList = new Set(), answeredQuestions = new Set();
+    let questionTimings = {}, recordedAnswers = {};
+
+    const D = document, G = id => D.getElementById(id), QA = sel => D.querySelectorAll(sel);
+    const setupPage = G('setupPage'), quizContainer = G('quizContainer'), reviewPanel = G('reviewPanel');
+    const questionNavGrid = G('questionNavGrid'), analysisPage = G('analysisPage');
+    const submissionWarningModal = G('submissionWarningModal');
+    const markReviewBtn = G('markReviewBtn'), submitBtn = G('submitBtn'), eraseBtn = G('eraseBtn');
+    const testDurationInput = G('testDuration'), numQuestionsInput = G('numQuestions');
+    const totalTimeSpan = G('totalTime'), questionTimeSpan = G('questionTime');
+    const analysisTableBody = G('analysisTableBody');
+    const modalAnsweredCount = G('modalAnsweredCount'), modalUnansweredCount = G('modalUnansweredCount'), modalReviewedCount = G('modalReviewedCount');
+    const reviewAnsweredCount = G('reviewAnsweredCount'), reviewUnansweredCount = G('reviewUnansweredCount');
+    const summaryTotal = G('summaryTotal'), summaryAttempted = G('summaryAttempted'), summaryUnattempted = G('summaryUnattempted');
+    const darkThemeBtn = G('darkThemeBtn'), lightThemeBtn = G('lightThemeBtn');
+    const cbtForm = G('cbtForm');
+
+    const formatTime = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+    const saveState = () => localStorage.setItem('omrTestState', JSON.stringify({
+        answeredQuestions: [...answeredQuestions], reviewList: [...reviewList], current, totalSeconds, questionTimings, recordedAnswers,
+        testDurationInput: testDurationInput.value, numQuestionsInput: numQuestionsInput.value, testInProgress: true
+    }));
+
+    const loadState = () => {
+        const s = localStorage.getItem('omrTestState');
+        if (!s) return false;
+        const state = JSON.parse(s);
+        if (!state.testInProgress) return false;
+
+        answeredQuestions = new Set(state.answeredQuestions);
+        reviewList = new Set(state.reviewList);
+        current = state.current; totalSeconds = state.totalSeconds;
+        questionTimings = state.questionTimings || {}; recordedAnswers = state.recordedAnswers || {};
+        totalQuestions = parseInt(state.numQuestionsInput);
+
+        testDurationInput.value = state.testDurationInput || 5;
+        numQuestionsInput.value = state.numQuestionsInput || 5;
+
+        generateOmrQuestions(totalQuestions);
+        applySavedAnswers();
+
+        totalTimeSpan.textContent = formatTime(totalSeconds);
+        setupPage.style.display = 'none'; quizContainer.style.display = 'block'; submitBtn.style.display = 'block';
+        showQuestion(current); startTimers(); return true;
+    };
+
+    const applySavedAnswers = () => answeredQuestions.forEach(qI => {
+        const sA = recordedAnswers[qI];
+        if (sA) { const r = D.querySelector(`input[name="q${qI}"][value="${sA}"]`); if (r) r.checked = true; }
+    });
+
+    const startTimers = () => {
+        clearInterval(totalTimeInterval);
+        totalTimeInterval = setInterval(() => {
+            if (totalSeconds <= 0) { clearInterval(totalTimeInterval); finalSubmitTest(); return; }
+            totalSeconds--; questionSeconds++;
+            if (!questionTimings[current]) questionTimings[current] = 0;
+            questionTimings[current]++;
+            saveState();
+            totalTimeSpan.textContent = formatTime(totalSeconds);
+            questionTimeSpan.textContent = `00:${String(questionSeconds).padStart(2, '0')}`;
+        }, 1000);
+    };
+
+    D.addEventListener('DOMContentLoaded', () => {
+        setTheme('dark');
+        if (!loadState()) setupPage.style.display = 'flex';
+        else [quizContainer, reviewPanel, analysisPage, submitBtn].forEach(el => el.style.display = 'none');
+    });
+
+    const generateOmrQuestions = count => {
+        cbtForm.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const qD = D.createElement('div');
+            qD.classList.add('question'); qD.dataset.q = i;
+            qD.innerHTML = `<h3>${i + 1}.</h3><div class="omr-options">
+                <label><input type="radio" name="q${i}" value="A" onchange="updateQuestionStatus(${i})"> A</label>
+                <label><input type="radio" name="q${i}" value="B" onchange="updateQuestionStatus(${i})"> B</label>
+                <label><input type="radio" name="q${i}" value="C" onchange="updateQuestionStatus(${i})"> C</label>
+                <label><input type="radio" name="q${i}" value="D" onchange="updateQuestionStatus(${i})"> D</label></div>`;
+            cbtForm.appendChild(qD);
+        }
+        totalQuestions = count; generateQuestionNavButtons();
+    };
+
+    const startTest = () => {
+        if (quizContainer.style.display === 'block' && totalTimeInterval) return;
+        const dM = parseInt(testDurationInput.value), nQ = parseInt(numQuestionsInput.value);
+        if (isNaN(dM) || dM <= 0 || isNaN(nQ) || nQ <= 0) { alert("Please enter valid positive numbers for test duration and number of questions."); return; }
+
+        totalSeconds = dM * 60; totalTimeSpan.textContent = formatTime(totalSeconds);
+        questionTimings = {}; current = 0; answeredQuestions.clear(); reviewList.clear(); recordedAnswers = {};
+        localStorage.clear();
+
+        generateOmrQuestions(nQ);
+
+        setupPage.style.display = 'none'; quizContainer.style.display = 'block'; submitBtn.style.display = 'block';
+        eraseBtn.style.display = 'inline-block'; showQuestion(current); startTimers();
+    };
+
+    const showQuestion = i => {
+        QA('.question').forEach((q, idx) => q.classList.toggle('active', idx === i));
+        current = i; questionSeconds = 0;
+        updateQuestionNavColors(); markReviewBtn.classList.toggle('marked-for-review', reviewList.has(current));
+        saveState();
+    };
+
+    const nextQuestion = () => { if (current < totalQuestions - 1) showQuestion(current + 1); };
+    const prevQuestion = () => { if (current > 0) showQuestion(current - 1); };
+
+    const markReview = () => {
+        reviewList.has(current) ? reviewList.delete(current) : reviewList.add(current);
+        markReviewBtn.classList.toggle('marked-for-review', reviewList.has(current));
+        updateQuestionNavColors(); saveState();
+    };
+
+    const eraseAnswer = () => {
+        QA(`input[name="q${current}"]`).forEach(r => r.checked = false);
+        answeredQuestions.delete(current); delete recordedAnswers[current];
+        updateQuestionNavColors(); saveState();
+    };
+
+    const updateQuestionStatus = qI => {
+        const s = D.querySelector(`input[name="q${qI}"]:checked`);
+        if (s) { answeredQuestions.add(qI); recordedAnswers[qI] = s.value; }
+        else { answeredQuestions.delete(qI); delete recordedAnswers[qI]; }
+        updateQuestionNavColors(); saveState();
+    };
+
+    const setTheme = mode => {
+        D.body.classList.toggle('dark-mode', mode === 'light');
+        darkThemeBtn.classList.toggle('active', mode === 'dark');
+        lightThemeBtn.classList.toggle('active', mode === 'light');
+    };
+
+    const showSubmissionWarning = () => {
+        modalAnsweredCount.textContent = answeredQuestions.size;
+        modalUnansweredCount.textContent = totalQuestions - answeredQuestions.size;
+        modalReviewedCount.textContent = reviewList.size;
+        submissionWarningModal.style.display = 'flex';
+    };
+
+    const hideSubmissionWarning = () => { submissionWarningModal.style.display = 'none'; };
+
+    const finalSubmitTest = () => {
+        hideSubmissionWarning(); clearInterval(totalTimeInterval); localStorage.removeItem('omrTestState');
+        analysisTableBody.innerHTML = '';
+        let attemptedCount = 0;
+        for (let i = 0; i < totalQuestions; i++) {
+            const uA = recordedAnswers[i] || "N/A";
+            const tT = questionTimings[i] ? `${questionTimings[i]}s` : 'N/A';
+            if (uA !== "N/A") attemptedCount++;
+            analysisTableBody.insertRow().innerHTML = `<td>${i + 1}</td><td>${uA}</td><td>${tT}</td>`;
+        }
+        summaryTotal.textContent = totalQuestions; summaryAttempted.textContent = attemptedCount;
+        summaryUnattempted.textContent = totalQuestions - attemptedCount;
+        quizContainer.style.display = 'none'; reviewPanel.style.display = 'none';
+        analysisPage.style.display = 'block'; submitBtn.style.display = 'none'; eraseBtn.style.display = 'none';
+    };
+
+    const toggleFullScreen = () => { D.fullscreenElement ? D.exitFullscreen() : D.documentElement.requestFullscreen(); };
+
+    const toggleReviewPanel = () => {
+        const isR = reviewPanel.style.display === 'block';
+        quizContainer.style.display = isR ? 'block' : 'none';
+        reviewPanel.style.display = isR ? 'none' : 'block';
+        if (!isR) { updateQuestionNavColors(); reviewAnsweredCount.textContent = answeredQuestions.size; reviewUnansweredCount.textContent = totalQuestions - answeredQuestions.size; }
+    };
+
+    const generateQuestionNavButtons = () => {
+        questionNavGrid.innerHTML = '';
+        for (let i = 0; i < totalQuestions; i++) {
+            const b = D.createElement('button');
+            b.textContent = `Q${i + 1}`; b.dataset.questionIndex = i;
+            b.onclick = () => { showQuestion(i); toggleReviewPanel(); };
+            questionNavGrid.appendChild(b);
+        }
+    };
+
+    const updateQuestionNavColors = () => {
+        QA('.question-nav-grid button').forEach(b => {
+            const idx = parseInt(b.dataset.questionIndex);
+            b.classList.remove('answered', 'unanswered', 'reviewed', 'current-q');
+            if (idx === current) b.classList.add('current-q');
+            else if (reviewList.has(idx)) b.classList.add('reviewed');
+            else if (answeredQuestions.has(idx)) b.classList.add('answered');
+            else b.classList.add('unanswered');
+        });
+    };
+  </script>
+</body>
+</html>
